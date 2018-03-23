@@ -33,6 +33,7 @@ import (
 	"image/png"
 	"io"
 	"io/ioutil"
+	"log"
 	"math"
 	"os"
 	"path"
@@ -1552,12 +1553,18 @@ func (f *Fpdf) AddFontFromReader(familyStr, styleStr string, r io.Reader) {
 		return
 	}
 	// dbg("Adding family [%s], style [%s]", familyStr, styleStr)
+	log.Printf("adding family %q, style %q", familyStr, styleStr)
 	var ok bool
 	fontkey := getFontKey(familyStr, styleStr)
+	log.Printf("font-key= %v", fontkey)
+	log.Printf("fonts: %+v", f.fonts)
 	_, ok = f.fonts[fontkey]
+	log.Printf("ok=%v", ok)
 	if ok {
+		log.Printf("boo 1")
 		return
 	}
+	log.Printf("... loading font ...")
 	var info fontDefType
 	info = f.loadfont(r)
 	if f.err != nil {
@@ -1579,6 +1586,7 @@ func (f *Fpdf) AddFontFromReader(familyStr, styleStr string, r io.Reader) {
 		}
 		info.DiffN = n
 	}
+	log.Printf("font [%s], type [%s]", info.File, info.Tp)
 	// dbg("font [%s], type [%s]", info.File, info.Tp)
 	if len(info.File) > 0 {
 		// Embedded font
@@ -2831,6 +2839,7 @@ func (f *Fpdf) loadfont(r io.Reader) (def fontDefType) {
 	if f.err != nil {
 		return
 	}
+	log.Printf("Loading font from reader...")
 	// dbg("Loading font [%s]", fontStr)
 	var buf bytes.Buffer
 	_, err := buf.ReadFrom(r)

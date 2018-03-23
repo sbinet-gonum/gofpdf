@@ -25,6 +25,7 @@ package gofpdf
 import (
 	"encoding/binary"
 	"fmt"
+	"io"
 	"os"
 	"regexp"
 	"strings"
@@ -50,7 +51,7 @@ type TtfType struct {
 
 type ttfParser struct {
 	rec              TtfType
-	f                *os.File
+	f                io.ReadSeeker
 	tables           map[string]uint32
 	numberOfHMetrics uint16
 	numGlyphs        uint16
@@ -58,11 +59,18 @@ type ttfParser struct {
 
 // TtfParse extracts various metrics from a TrueType font file.
 func TtfParse(fileStr string) (TtfRec TtfType, err error) {
-	var t ttfParser
-	t.f, err = os.Open(fileStr)
+	var f *os.File
+	f, err = os.Open(fileStr)
 	if err != nil {
 		return
 	}
+	defer f.Close()
+	return TtfParseFrom(f)
+}
+
+// TtfParseFrom extracts various metrics from a TrueType font reader.
+func TtfParseFrom(f io.ReadSeeker) (TtfRec TtfType, err error) {
+	t := ttfParser{f: f}
 	version, err := t.ReadStr(4)
 	if err != nil {
 		return
@@ -93,7 +101,6 @@ func TtfParse(fileStr string) (TtfRec TtfType, err error) {
 	if err != nil {
 		return
 	}
-	t.f.Close()
 	TtfRec = t.rec
 	return
 }

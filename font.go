@@ -51,32 +51,32 @@ func loadMap(encodingFileStr string) (encList encListType, err error) {
 	var f *os.File
 	// f, err = os.Open(encodingFilepath(encodingFileStr))
 	f, err = os.Open(encodingFileStr)
-	if err == nil {
-		defer f.Close()
-		for j := range encList {
-			encList[j].uv = -1
-			encList[j].name = ".notdef"
-		}
-		scanner := bufio.NewScanner(f)
-		var enc encType
-		var pos int
-		for scanner.Scan() {
-			// "!3F U+003F question"
-			_, err = fmt.Sscanf(scanner.Text(), "!%x U+%x %s", &pos, &enc.uv, &enc.name)
-			if err == nil {
-				if pos < 256 {
-					encList[pos] = enc
-				} else {
-					err = fmt.Errorf("map position 0x%2X exceeds 0xFF", pos)
-					return
-				}
-			} else {
-				return
-			}
-		}
-		if err = scanner.Err(); err != nil {
+	if err != nil {
+		return
+	}
+	defer f.Close()
+	for j := range encList {
+		encList[j].uv = -1
+		encList[j].name = ".notdef"
+	}
+	scanner := bufio.NewScanner(f)
+	var enc encType
+	var pos int
+	for scanner.Scan() {
+		// "!3F U+003F question"
+		_, err = fmt.Sscanf(scanner.Text(), "!%x U+%x %s", &pos, &enc.uv, &enc.name)
+		if err != nil {
 			return
 		}
+		if pos < 256 {
+			encList[pos] = enc
+		} else {
+			err = fmt.Errorf("map position 0x%2X exceeds 0xFF", pos)
+			return
+		}
+	}
+	if err = scanner.Err(); err != nil {
+		return
 	}
 	return
 }
